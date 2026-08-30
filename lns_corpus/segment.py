@@ -3,19 +3,59 @@ import re
 from dataclasses import dataclass,asdict
 from .markers import split_trailing_marker
 
-COLOPHON_START=re.compile(r"^\s*इति\s*श्री(?:लक्ष्मी|लक्ष्मीनारायण)")
+# Every non-empty chapter in the current Wikisource snapshot has a closing
+# colophon of this general form, but the transcription contains variants:
+# omitted śrī, spelling damage, and hyphenated saṃhi-tā.  Restrict detection
+# to the latter half of a chapter and choose the last candidate; this avoids
+# treating ordinary occurrences of "iti" as a colophon.
+COLOPHON_RE = re.compile(r"इति\s*(?:श्री)?[^\n]{0,100}?(?:संहि-?ता|सहिता)")
+STRICT_COLOPHON_RE = re.compile(r"इति\s*श्रीलक्ष्मीनारायणीयसंहिता")
+# Fallback retained for future snapshots whose colophon is too damaged for
+# COLOPHON_RE but still begins in the formerly recognized standard shape.
+COLOPHON_START = re.compile(r"^\s*इति\s*श्री(?:लक्ष्मी|लक्ष्मीनारायण)")
 
 @dataclass
 class VerseRecord:
     id:str; khanda:int; chapter:int; verse:int; text_devanagari:str; marker_raw:str; marker_normalized:str; marker_observed_verse:int|None; marker_reference_hint:list[int]; anomaly_flags:list[str]
     def as_dict(self): return asdict(self)
 
+def _separate_colophon(text:str,khanda:int,chapter:int):
+    anomalies=[]
+    candidates=[m for m in COLOPHON_RE.finditer(text) if m.start() >= len(text)*0.5]
+    if not candidates:
+        return text,anomalies
+    m=candidates[-1]
+    start=m.start()
+    line_start=text.rfind("\n",0,start)+1
+    midline=bool(text[line_start:start].strip())
+    lineno=text.count("\n",0,start)+1
+    raw_preview=text[start:start+220].replace("\n"," ")
+    anomalies.append({
+        "type":"colophon_detected_midline" if midline else "colophon_detected",
+        "khanda":khanda,
+        "chapter":chapter,
+        "line":lineno,
+        "text_preview":raw_preview,
+    })
+    if not STRICT_COLOPHON_RE.match(text[start:]):
+        anomalies.append({
+            "type":"colophon_variant_detected",
+            "khanda":khanda,
+            "chapter":chapter,
+            "line":lineno,
+            "text_preview":raw_preview,
+        })
+    return text[:start],anomalies
+
 def segment_chapter(text,khanda,chapter):
-    records=[]; anomalies=[]; buffer=[]; canonical=0
+    text,colophon_anomalies=_separate_colophon(text,khanda,chapter)
+    records=[]; anomalies=list(colophon_anomalies); buffer=[]; canonical=0
     for lineno,raw in enumerate(text.splitlines(),1):
         line=raw.strip()
         if not line: continue
-        if COLOPHON_START.match(line): break
+        if COLOPHON_START.match(line):
+            anomalies.append({"type":"fallback_colophon_detected","khanda":khanda,"chapter":chapter,"line":lineno,"text_preview":line[:200]})
+            break
         lexical,marker=split_trailing_marker(line)
         if lexical: buffer.append(lexical)
         if marker is None: continue
@@ -34,7 +74,7 @@ def segment_chapter(text,khanda,chapter):
             })
 
         # If the printed number cannot be parsed, the marker is used only as a
-        # verse boundary.  Never fabricate an observed number.
+        # verse boundary. Never fabricate an observed number.
         if observed is not None and observed!=canonical:
             flags.append("printed_verse_number_mismatch")
             anomalies.append({"type":"printed_verse_number_mismatch","khanda":khanda,"chapter":chapter,"line":lineno,"canonical_position":canonical,"observed":observed,"marker":marker.raw})
