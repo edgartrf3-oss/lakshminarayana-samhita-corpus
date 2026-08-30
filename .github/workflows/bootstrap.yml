@@ -1,0 +1,41 @@
+name: Bootstrap LNS corpus pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "_bootstrap/lakshminarayana-samhita-corpus-starter-v0.3.zip"
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Expand starter package
+        run: |
+          rm -rf /tmp/lns-starter
+          mkdir -p /tmp/lns-starter
+          unzip -q _bootstrap/lakshminarayana-samhita-corpus-starter-v0.3.zip -d /tmp/lns-starter
+          src=$(find /tmp/lns-starter -maxdepth 1 -type d -name 'lakshminarayana-samhita-corpus-starter*' | head -n 1)
+          if [ -z "$src" ]; then
+            echo "Starter directory not found inside archive" >&2
+            exit 1
+          fi
+          cp -a "$src"/. ./
+
+      - name: Commit pipeline files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/build-corpus.yml .gitignore ATTRIBUTION.md CITATION.cff LICENSE-CODE README.md config docs lns_corpus pyproject.toml scripts tests
+          if git diff --cached --quiet; then
+            echo "No bootstrap changes to commit."
+            exit 0
+          fi
+          git commit -m "Bootstrap LNS corpus pipeline v0.3"
+          git push
