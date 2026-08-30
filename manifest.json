@@ -1,0 +1,12 @@
+{
+  "title": "Lakshminarayana Samhita Corpus",
+  "verse_records": 125738,
+  "chapter_pages": 1250,
+  "canonical_id_example": "LNS_3.173.52",
+  "known_source_gaps": [
+    {
+      "khanda": 2,
+      "chapter": 96
+    }
+  ]
+}
