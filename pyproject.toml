@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lns-corpus"
+version = "0.3.0"
+description = "Reproducible corpus-building pipeline for the Lakshminarayana Samhita (Wikisource source, cleaning, segmentation, IAST/SLP1 transliteration)."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+    "PyYAML>=6.0",
+    "indic-transliteration>=2.3.60",
+]
+
+[tool.setuptools]
+packages = ["lns_corpus"]
