@@ -27,108 +27,150 @@ FORCED_BOUNDARIES: dict[tuple[int, int], tuple[ForcedBoundary, ...]] = {
     (1, 25): (
         ForcedBoundary(
             "आरंभिता द्राक्सुखमुक्तिदात्री भक्तिस्तु माता बहुसम्मता मे ।।",
-            "।।",
-            None,
-            "।।",
+            "।।", None, "।।",
             note="verse 7 has no printed numeral; boundary is the end of the second metrical line before printed verse 8",
         ),
     ),
     (1, 67): (
         ForcedBoundary(
             "क्रयविक्रयकौटिल्यकर्ताऽर्षरोगवान्भवेत्।",
-            "।",
-            None,
-            "।",
+            "।", None, "।",
             note="printed verse 39 numeral is absent; following two-line unit is explicitly verse 40",
         ),
     ),
     (1, 89): (
         ForcedBoundary(
             "समाजे चात्र देवानां भविष्यति महोत्सवः ।।",
-            "।।",
-            None,
-            "।।",
+            "।।", None, "।।",
             note="printed verse 13 numeral is absent; next unit is explicitly verse 14",
         ),
     ),
     (1, 103): (
         ForcedBoundary(
             "हनिष्ये त्वां त्रिशूलेन नो चेन्मुञ्चसि मार्गकम् ३४",
-            "३४",
-            34,
-            "३४",
+            "३४", 34, "३४",
             note="verse 34 numeral survives but both surrounding dandas are absent",
         ),
     ),
     (1, 116): (
         ForcedBoundary(
             "सेवकश्चापि निर्लेपो ब्रह्मशब्दार्थ उच्यते।।।",
-            "।।।",
-            None,
-            "।।।",
+            "।।।", None, "।।।",
             note="verse 24 numeral is absent; next verse is explicitly 25",
+        ),
+    ),
+    (1, 162): (
+        ForcedBoundary(
+            "सतीरूपा समुद्भूता सेयं वाऽन्येति का सती ।। ग्र ।।",
+            "।। ग्र ।।", None,
+            lexical_override="सतीरूपा समुद्भूता सेयं वाऽन्येति का सती",
+            note="printed verse 2 number slot contains nonnumeric transcription 'ग्र'",
+        ),
+    ),
+    (1, 180): (
+        ForcedBoundary(
+            "क्षान्तिर्मुनीनामक्षोभ्या दया नियमिनामपि ।। का ।।",
+            "।। का ।।", None,
+            lexical_override="क्षान्तिर्मुनीनामक्षोभ्या दया नियमिनामपि",
+            note="printed verse 5 number slot contains nonnumeric transcription 'का'",
+        ),
+    ),
+    (1, 338): (
+        ForcedBoundary(
+            "नारायणो महाविष्णुर्महिमानमुवाच तान् । । वेः । ।",
+            "। । वेः । ।", None,
+            lexical_override="नारायणो महाविष्णुर्महिमानमुवाच तान्",
+            note="printed verse 2 number slot contains nonnumeric transcription 'वेः'",
+        ),
+    ),
+    (1, 351): (
+        ForcedBoundary(
+            "अस्य विप्रस्य संभाषात्स्नानपुण्वसमपर्णात् ।। ऽऽ ।।",
+            "।। ऽऽ ।।", None,
+            lexical_override="अस्य विप्रस्य संभाषात्स्नानपुण्वसमपर्णात्",
+            note="printed verse 77 number slot contains nonnumeric transcription 'ऽऽ'",
         ),
     ),
     (1, 388): (
         ForcedBoundary(
             "रत्नैर्हीरकमण्यादिहारैश्चन्दनकुंकुमैः {{१७{",
-            "{{१७{",
-            17,
-            "{{१७{",
+            "{{१७{", 17, "{{१७{",
             note="verse 17 marker is corrupted into MediaWiki-like braces",
+        ),
+    ),
+    (1, 409): (
+        ForcedBoundary(
+            "विशालेन कृते स्वयंवरे राजन्यशोभिते ।। रे ।।",
+            "।। रे ।।", None,
+            lexical_override="विशालेन कृते स्वयंवरे राजन्यशोभिते",
+            note="printed verse 2 number slot contains nonnumeric transcription 'रे'",
         ),
     ),
     (1, 421): (
         ForcedBoundary(
             "आतिथ्यं कर्तुमिच्छामि तत्र मे संविधीयताम् ३५",
-            "३५",
-            35,
-            "३५",
+            "३५", 35, "३५",
             note="verse 35 numeral survives but dandas are absent",
         ),
     ),
     (1, 443): (
         ForcedBoundary(
             "किंकरोऽपि गृहमध्ये रक्ष्यते गृहिणीयुतः ।।",
-            "।।",
-            None,
-            "।।",
+            "।।", None, "।।",
             note="verse 45 numeral is absent; adjacent printed verses are 44 and 46",
+        ),
+    ),
+    (1, 448): (
+        ForcedBoundary(
+            "आर्यावर्ते नृपश्चित्रवर्माऽऽसीद्धार्मिकः परः ।। रे ।।",
+            "।। रे ।।", None,
+            lexical_override="आर्यावर्ते नृपश्चित्रवर्माऽऽसीद्धार्मिकः परः",
+            note="printed verse 2 number slot contains nonnumeric transcription 'रे'",
         ),
     ),
     (2, 32): (
         ForcedBoundary(
             "रोहिण्यास्तु कनिष्ठा सा ज्येष्ठतां तपसेच्छति ।। १४।। तु. स्कन्दपु. [https://sa.wikisource.org/s/ggw १.२.२९.२०९]",
-            "।। १४।।",
-            14,
-            "",
+            "।। १४।।", 14, "",
             lexical_override="रोहिण्यास्तु कनिष्ठा सा ज्येष्ठतां तपसेच्छति",
             note="verse 14 marker is followed on the same source line by an editorial Skandapurana cross-reference",
+        ),
+    ),
+    (2, 45): (
+        ForcedBoundary(
+            "घटिकामात्रतस्तत्तु द्वीपं कुरुजटात्मकम् ।। रे ।।",
+            "।। रे ।।", None,
+            lexical_override="घटिकामात्रतस्तत्तु द्वीपं कुरुजटात्मकम्",
+            note="printed verse 2 number slot contains nonnumeric transcription 'रे'",
         ),
     ),
     (2, 293): (
         ForcedBoundary(
             "नमामि कान्तं मम कन्यकायाः कान्तं तथा चाऽर्बुदकन्यकानाम् ८५",
-            "८५",
-            85,
-            "८५",
+            "८५", 85, "८५",
             note="verse 85 numeral survives but dandas are absent",
         ),
     ),
     (3, 107): (
         ForcedBoundary(
             "प्राह श्रीचिह्नयोगी तु पश्यतां रूपमैश्वरम्।।",
-            "।।",
-            None,
-            "।।",
+            "।।", None, "।।",
             note="verse 42 numeral is absent; next verse is explicitly 43",
+        ),
+    ),
+    (3, 217): (
+        ForcedBoundary(
+            "भक्तः संभरदेवाख्यश्चित्रकलाविशारदः ।। रे ।।",
+            "।। रे ।।", None,
+            lexical_override="भक्तः संभरदेवाख्यश्चित्रकलाविशारदः",
+            note="printed verse 2 number slot contains nonnumeric transcription 'रे'",
         ),
     ),
 }
 
 
 # These lines contain a stray numeral plus a single danda inside the first
-# pada.  The permissive one-sided-marker fallback used to split them as full
+# pada. The permissive one-sided-marker fallback used to split them as full
 # verses; the real verse marker occurs on the following line.
 IGNORE_FALSE_BOUNDARIES: dict[tuple[int, int], frozenset[str]] = {
     (1, 46): frozenset({"स्तनयित्नूँश्च भानूँश्च वसूनष्टौ तथैव च । १"}),
@@ -143,7 +185,7 @@ IGNORE_FALSE_BOUNDARIES: dict[tuple[int, int], frozenset[str]] = {
 
 
 # Exact duplicated transcription line: the second copy repeats the same pada
-# and the same printed verse number.  It is retained in the immutable source
+# and the same printed verse number. It is retained in the immutable source
 # snapshot but omitted from the normalized/search layer with an audit flag.
 DROP_DUPLICATE_LINES: dict[tuple[int, int], frozenset[str]] = {
     (1, 114): frozenset({"अंकयेच्छंखचक्राभ्यां नाम कुर्याच्च वैष्णवम् ।।५५ ।।"}),
@@ -152,7 +194,7 @@ DROP_DUPLICATE_LINES: dict[tuple[int, int], frozenset[str]] = {
 
 # Known printed-number sequence offsets that are not segmentation errors.
 # value: (minimum canonical position, expected anchor-minus-canonical offset,
-# reason).  Strong anchors matching these offsets are classified separately.
+# reason). Strong anchors matching these offsets are classified separately.
 KNOWN_ANCHOR_OFFSETS: dict[tuple[int, int], tuple[tuple[int, int, str], ...]] = {
     (1, 44): ((18, -1, "printed verse 17 is used for two distinct consecutive textual units"),),
     (1, 293): ((3, -2, "chapter has two introductory verses, then printed numbering restarts at 1"),),
