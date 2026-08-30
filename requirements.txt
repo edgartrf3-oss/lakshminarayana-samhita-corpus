@@ -1,3 +1,4 @@
+# Runtime dependencies for the reproducible LNS corpus build
 requests>=2.31
 PyYAML>=6.0
 indic-transliteration>=2.3.60
