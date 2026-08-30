@@ -1,0 +1,38 @@
+work:
+  title: "Lakshminarayana Samhita"
+  title_iast: "Lakṣmīnārāyaṇa Saṃhitā"
+  source_site: "https://sa.wikisource.org"
+  api_endpoint: "https://sa.wikisource.org/w/api.php"
+  root_title: "लक्ष्मीनारायणसंहिता"
+  retrieved_snapshot_label: "live"
+khanda:
+  1:
+    name: "Krtayuga-santana"
+    name_iast: "Kṛtayuga-santāna"
+    title: "खण्डः १ (कृतयुगसन्तानः)"
+    expected_chapters: 590
+    declared_slokas: 55527
+  2:
+    name: "Tretayuga-santana"
+    name_iast: "Tretāyuga-santāna"
+    title: "खण्डः २ (त्रेतायुगसन्तानः)"
+    expected_chapters: 300
+    declared_slokas: 32254
+  3:
+    name: "Dvaparayuga-santana"
+    name_iast: "Dvāparayuga-santāna"
+    title: "खण्डः ३ (द्वापरयुगसन्तानः)"
+    expected_chapters: 237
+    declared_slokas: 25162
+  4:
+    name: "Tisya-santana"
+    name_iast: "Tiṣya-santāna"
+    title: "खण्डः ४ (तिष्यसन्तानः)"
+    expected_chapters: 123
+    declared_slokas: 13038
+    declared_additional_slokas: 7
+checksums:
+  expected_chapters_total: 1250
+  declared_slokas_regular: 125981
+  declared_additional_slokas: 7
+  declared_slokas_total: 125988
