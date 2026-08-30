@@ -18,5 +18,8 @@ def parse_marker_body(body: str):
 def split_trailing_marker(line: str):
     m = MARKER_RE.search(line)
     if not m: return line, None
-    verse_no, parts = parse_marker_body(m.group("body"))
+    try:
+        verse_no, parts = parse_marker_body(m.group("body"))
+    except ValueError:
+        return line, None
     return line[:m.start()].rstrip(), VerseMarker(m.group(0), ".".join(map(str, parts)), verse_no, parts)
