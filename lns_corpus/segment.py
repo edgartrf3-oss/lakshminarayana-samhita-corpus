@@ -1,11 +1,11 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass,asdict
-from .markers import split_trailing_marker
+from .markers import split_trailing_marker, split_first_inline_marker
 
 # Every non-empty chapter in the current Wikisource snapshot has a closing
 # colophon of this general form, but the transcription contains variants:
-# omitted śrī, spelling damage, and hyphenated saṃhi-tā.  Restrict detection
+# omitted śrī, spelling damage, and hyphenated saṃhi-tā. Restrict detection
 # to the latter half of a chapter and choose the last candidate; this avoids
 # treating ordinary occurrences of "iti" as a colophon.
 COLOPHON_RE = re.compile(r"इति\s*(?:श्री)?[^\n]{0,100}?(?:संहि-?ता|सहिता)")
@@ -50,15 +50,9 @@ def _separate_colophon(text:str,khanda:int,chapter:int):
 def segment_chapter(text,khanda,chapter):
     text,colophon_anomalies=_separate_colophon(text,khanda,chapter)
     records=[]; anomalies=list(colophon_anomalies); buffer=[]; canonical=0
-    for lineno,raw in enumerate(text.splitlines(),1):
-        line=raw.strip()
-        if not line: continue
-        if COLOPHON_START.match(line):
-            anomalies.append({"type":"fallback_colophon_detected","khanda":khanda,"chapter":chapter,"line":lineno,"text_preview":line[:200]})
-            break
-        lexical,marker=split_trailing_marker(line)
-        if lexical: buffer.append(lexical)
-        if marker is None: continue
+
+    def emit(marker,lineno):
+        nonlocal canonical,buffer
         canonical+=1; flags=[]; observed=marker.observed_verse_number
 
         for marker_flag in marker.anomaly_flags:
@@ -89,6 +83,36 @@ def segment_chapter(text,khanda,chapter):
                 anomalies.append({"type":"strong_anchor_position_mismatch","khanda":khanda,"chapter":chapter,"line":lineno,"canonical_position":canonical,"anchor_verse":av,"hint":list(hint)})
         verse_text="\n".join(buffer).strip()
         records.append(VerseRecord(f"LNS_{khanda}.{chapter}.{canonical}",khanda,chapter,canonical,verse_text,marker.raw,marker.normalized_body,observed,list(hint),flags)); buffer=[]
+
+    for lineno,raw in enumerate(text.splitlines(),1):
+        line=raw.strip()
+        if not line: continue
+        if COLOPHON_START.match(line):
+            anomalies.append({"type":"fallback_colophon_detected","khanda":khanda,"chapter":chapter,"line":lineno,"text_preview":line[:200]})
+            break
+
+        # Very rare source line-wrap corruption can place the end marker of
+        # one verse and the first pada of the next verse on the same line.
+        # Only the strict inline detector handles this; editorial notes after
+        # a verse marker are intentionally left untouched.
+        while True:
+            lexical,inline_marker,remainder=split_first_inline_marker(line)
+            if inline_marker is None:
+                break
+            if lexical:
+                buffer.append(lexical)
+            emit(inline_marker,lineno)
+            line=remainder.strip()
+            if not line:
+                break
+        if not line:
+            continue
+
+        lexical,marker=split_trailing_marker(line)
+        if lexical: buffer.append(lexical)
+        if marker is None: continue
+        emit(marker,lineno)
+
     if buffer:
         tail="\n".join(buffer).strip()
         if tail: anomalies.append({"type":"unsegmented_tail","khanda":khanda,"chapter":chapter,"text_preview":tail[:200]})
