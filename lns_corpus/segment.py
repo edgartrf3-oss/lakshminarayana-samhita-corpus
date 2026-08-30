@@ -2,11 +2,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass,asdict
 from .markers import split_trailing_marker
+
 COLOPHON_START=re.compile(r"^\s*इति\s*श्री(?:लक्ष्मी|लक्ष्मीनारायण)")
+
 @dataclass
 class VerseRecord:
     id:str; khanda:int; chapter:int; verse:int; text_devanagari:str; marker_raw:str; marker_normalized:str; marker_observed_verse:int; marker_reference_hint:list[int]; anomaly_flags:list[str]
     def as_dict(self): return asdict(self)
+
 def segment_chapter(text,khanda,chapter):
     records=[]; anomalies=[]; buffer=[]; canonical=0
     for lineno,raw in enumerate(text.splitlines(),1):
@@ -17,6 +20,9 @@ def segment_chapter(text,khanda,chapter):
         if lexical: buffer.append(lexical)
         if marker is None: continue
         canonical+=1; flags=[]; observed=marker.observed_verse_number
+        if marker.malformed_delimiter:
+            flags.append("malformed_marker_delimiter")
+            anomalies.append({"type":"malformed_marker_delimiter","khanda":khanda,"chapter":chapter,"line":lineno,"canonical_position":canonical,"marker":marker.raw})
         if observed!=canonical:
             flags.append("printed_verse_number_mismatch"); anomalies.append({"type":"printed_verse_number_mismatch","khanda":khanda,"chapter":chapter,"line":lineno,"canonical_position":canonical,"observed":observed,"marker":marker.raw})
         hint=marker.full_reference_hint
