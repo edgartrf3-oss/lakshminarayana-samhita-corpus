@@ -5,13 +5,20 @@ from .numerals import devanagari_to_ascii
 
 # The Wikisource transcription contains many damaged verse delimiters:
 # missing opening/closing dandas, ASCII pipes in place of dandas, stray
-# punctuation inside the marker, etc.  These patterns are used only to detect
-# a verse boundary.  The raw marker is always preserved and uncertain printed
+# punctuation inside the marker, etc. These patterns are used only to detect
+# a verse boundary. The raw marker is always preserved and uncertain printed
 # numbers are never guessed.
 DANDA_RUN = r"(?:॥|(?:।\s*){1,4})"
 NUMERIC_BODY = r"(?=[0-9०-९.\s]*[0-9०-९])[0-9०-९.\s]+?"
 MARKER_RE = re.compile(
     rf"(?P<prefix>{DANDA_RUN})\s*(?P<body>{NUMERIC_BODY})\s*(?P<suffix>{DANDA_RUN})\s*$"
+)
+# A very small number of source lines contain an explicit empty number slot,
+# e.g. "... ।।  ।।". Requiring two clear double-danda groups separated by
+# whitespace makes this conservative: we treat it as a boundary but do not
+# manufacture the missing printed number.
+EMPTY_MARKER_RE = re.compile(
+    r"(?P<prefix>॥|।।)\s+(?P<body>)(?P<suffix>॥|।।)\s*$"
 )
 PREFIX_ONLY_RE = re.compile(
     rf"(?P<prefix>{DANDA_RUN})\s*(?P<body>{NUMERIC_BODY})\s*[.!]?\s*$"
@@ -54,12 +61,15 @@ def parse_marker_body(body: str):
 
 def _make_marker(line: str, m: re.Match[str], flags: list[str]):
     body = m.group("body")
-    try:
-        verse_no, parts = parse_marker_body(body)
-        normalized = ".".join(map(str, parts))
-    except ValueError:
+    if "missing_marker_number" in flags:
         verse_no, parts, normalized = None, (), ""
-        flags.append("malformed_marker_body")
+    else:
+        try:
+            verse_no, parts = parse_marker_body(body)
+            normalized = ".".join(map(str, parts))
+        except ValueError:
+            verse_no, parts, normalized = None, (), ""
+            flags.append("malformed_marker_body")
     prefix = m.groupdict().get("prefix")
     suffix = m.groupdict().get("suffix")
     if prefix and _danda_units(prefix) < 2:
@@ -75,7 +85,11 @@ def split_trailing_marker(line: str):
     if m:
         return _make_marker(line, m, [])
 
-    # One-sided delimiters are common OCR/transcription damage.  A numeric
+    m = EMPTY_MARKER_RE.search(line)
+    if m:
+        return _make_marker(line, m, ["missing_marker_number"])
+
+    # One-sided delimiters are common OCR/transcription damage. A numeric
     # body plus a surviving danda-run at the line end is still a strong verse
     # boundary signal; we do not infer the missing punctuation.
     m = PREFIX_ONLY_RE.search(line)
@@ -85,14 +99,14 @@ def split_trailing_marker(line: str):
     if m:
         return _make_marker(line, m, ["one_sided_marker_delimiter"])
 
-    # Some pages use ASCII |/l/I glyphs where dandas should be.  Preserve them
+    # Some pages use ASCII |/l/I glyphs where dandas should be. Preserve them
     # verbatim and flag the nonstandard delimiter.
     m = MIXED_DELIMITER_RE.search(line)
     if m:
         return _make_marker(line, m, ["nonstandard_marker_delimiter"])
 
     # When the marker is clearly bracketed but its body contains stray OCR
-    # characters, use it only as a boundary.  The observed number remains
+    # characters, use it only as a boundary. The observed number remains
     # unknown rather than being silently corrected.
     m = NOISY_BODY_RE.search(line)
     if m:
