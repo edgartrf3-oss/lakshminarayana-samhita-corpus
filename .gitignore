@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+source/wikisource/[1-4]/*.json
+metadata/*.csv
+reports/*.json
+consolidated/*.txt
+corpus/devanagari/*.txt
+corpus/iast/*.txt
+corpus/slp1/*.txt
