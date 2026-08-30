@@ -1,7 +1,13 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass,asdict
-from .markers import split_trailing_marker, split_first_inline_marker
+from .markers import VerseMarker, split_trailing_marker, split_first_inline_marker
+from .source_repairs import (
+    forced_boundary,
+    ignore_false_boundary,
+    drop_duplicate_line,
+    known_anchor_offset,
+)
 
 # Every non-empty chapter in the current Wikisource snapshot has a closing
 # colophon of this general form, but the transcription contains variants:
@@ -79,8 +85,24 @@ def segment_chapter(text,khanda,chapter):
                 flags.append("marker_prefix_context_mismatch")
                 anomalies.append({"type":"marker_prefix_context_mismatch","khanda":khanda,"chapter":chapter,"line":lineno,"canonical_position":canonical,"hint":list(hint)})
             elif av!=canonical:
-                flags.append("strong_anchor_position_mismatch")
-                anomalies.append({"type":"strong_anchor_position_mismatch","khanda":khanda,"chapter":chapter,"line":lineno,"canonical_position":canonical,"anchor_verse":av,"hint":list(hint)})
+                offset=av-canonical
+                known_reason=known_anchor_offset(khanda,chapter,canonical,offset)
+                if known_reason:
+                    flags.append("known_numbering_offset")
+                    anomalies.append({
+                        "type":"known_numbering_offset",
+                        "khanda":khanda,
+                        "chapter":chapter,
+                        "line":lineno,
+                        "canonical_position":canonical,
+                        "anchor_verse":av,
+                        "offset":offset,
+                        "reason":known_reason,
+                        "hint":list(hint),
+                    })
+                else:
+                    flags.append("strong_anchor_position_mismatch")
+                    anomalies.append({"type":"strong_anchor_position_mismatch","khanda":khanda,"chapter":chapter,"line":lineno,"canonical_position":canonical,"anchor_verse":av,"hint":list(hint)})
         verse_text="\n".join(buffer).strip()
         records.append(VerseRecord(f"LNS_{khanda}.{chapter}.{canonical}",khanda,chapter,canonical,verse_text,marker.raw,marker.normalized_body,observed,list(hint),flags)); buffer=[]
 
@@ -91,10 +113,66 @@ def segment_chapter(text,khanda,chapter):
             anomalies.append({"type":"fallback_colophon_detected","khanda":khanda,"chapter":chapter,"line":lineno,"text_preview":line[:200]})
             break
 
+        # Snapshot-specific repairs are exact-string matched and therefore do
+        # not broaden the global parser. Every application is explicitly
+        # reported and the immutable source snapshot remains untouched.
+        if drop_duplicate_line(khanda,chapter,line):
+            anomalies.append({
+                "type":"source_repair_dropped_duplicate",
+                "khanda":khanda,
+                "chapter":chapter,
+                "line":lineno,
+                "source_line":line,
+            })
+            continue
+
+        if ignore_false_boundary(khanda,chapter,line):
+            buffer.append(line)
+            anomalies.append({
+                "type":"source_repair_ignored_false_boundary",
+                "khanda":khanda,
+                "chapter":chapter,
+                "line":lineno,
+                "source_line":line,
+            })
+            continue
+
+        repair=forced_boundary(khanda,chapter,line)
+        if repair is not None:
+            if repair.lexical_override is not None:
+                lexical=repair.lexical_override
+            elif repair.strip_suffix and line.endswith(repair.strip_suffix):
+                lexical=line[:-len(repair.strip_suffix)].rstrip()
+            else:
+                lexical=line
+            if lexical:
+                buffer.append(lexical)
+            marker=VerseMarker(
+                repair.marker_raw,
+                str(repair.observed) if repair.observed is not None else "",
+                repair.observed,
+                (),
+                ("source_repair_forced_boundary",),
+            )
+            anomalies.append({
+                "type":"source_repair_applied",
+                "khanda":khanda,
+                "chapter":chapter,
+                "line":lineno,
+                "action":"force_boundary",
+                "source_line":line,
+                "marker":repair.marker_raw,
+                "observed":repair.observed,
+                "note":repair.note,
+            })
+            emit(marker,lineno)
+            continue
+
         # Very rare source line-wrap corruption can place the end marker of
         # one verse and the first pada of the next verse on the same line.
         # Only the strict inline detector handles this; editorial notes after
-        # a verse marker are intentionally left untouched.
+        # a verse marker are intentionally left untouched unless registered as
+        # an exact source repair above.
         while True:
             lexical,inline_marker,remainder=split_first_inline_marker(line)
             if inline_marker is None:
