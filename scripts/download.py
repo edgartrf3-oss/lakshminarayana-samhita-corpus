@@ -18,7 +18,7 @@ def main():
             n=chapter_number(p["title"])
             if n and 1<=n<=info["expected_chapters"]: pages.append((n,p))
         by_n={}
-        for n,p in sorted(pages): by_n.setdefault(n,p)
+        for n,p in sorted(pages, key=lambda x: x[0]): by_n.setdefault(n,p)
         expected=set(range(1,info["expected_chapters"]+1)); missing=sorted(expected-set(by_n)); print(f"Khanda {k}: found {len(by_n)}/{len(expected)}; missing={missing[:20]}")
         records=client.revisions_with_content_by_pageid([by_n[n]["pageid"] for n in sorted(by_n)]); by_id={p["pageid"]:p for p in records}; kdir=root/str(k); kdir.mkdir(exist_ok=True)
         for n in sorted(by_n):
