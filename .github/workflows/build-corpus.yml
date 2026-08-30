@@ -25,7 +25,9 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          pip install -e .
       - name: Download revision-pinned Wikisource snapshot
         env:
           LNS_USER_AGENT: "LakshminarayanaSamhitaCorpusBot/0.3 (${{ github.server_url }}/${{ github.repository }}; research corpus)"
