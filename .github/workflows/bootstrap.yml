@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "_bootstrap/lakshminarayana-samhita-corpus-starter-v0.3.zip"
+      - "_bootstrap/lakshminarayana-samhita-corpus-starter-v0.3.zip.b64"
 
 permissions:
   contents: write
@@ -20,7 +20,8 @@ jobs:
         run: |
           rm -rf /tmp/lns-starter
           mkdir -p /tmp/lns-starter
-          unzip -q _bootstrap/lakshminarayana-samhita-corpus-starter-v0.3.zip -d /tmp/lns-starter
+          base64 --decode _bootstrap/lakshminarayana-samhita-corpus-starter-v0.3.zip.b64 > /tmp/lns-starter.zip
+          unzip -q /tmp/lns-starter.zip -d /tmp/lns-starter
           src=$(find /tmp/lns-starter -maxdepth 1 -type d -name 'lakshminarayana-samhita-corpus-starter*' | head -n 1)
           if [ -z "$src" ]; then
             echo "Starter directory not found inside archive" >&2
