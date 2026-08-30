@@ -20,9 +20,9 @@ def main():
         by_n={}
         for n,p in sorted(pages): by_n.setdefault(n,p)
         expected=set(range(1,info["expected_chapters"]+1)); missing=sorted(expected-set(by_n)); print(f"Khanda {k}: found {len(by_n)}/{len(expected)}; missing={missing[:20]}")
-        records=client.revisions_with_content_by_pageid([by_n[n]["id"] for n in sorted(by_n)]); by_id={p["pageid"]:p for p in records}; kdir=root/str(k); kdir.mkdir(exist_ok=True)
+        records=client.revisions_with_content_by_pageid([by_n[n]["pageid"] for n in sorted(by_n)]); by_id={p["pageid"]:p for p in records}; kdir=root/str(k); kdir.mkdir(exist_ok=True)
         for n in sorted(by_n):
-            title=by_n[n]["title"]; page=by_id.get(by_n[n]["id"],{}); revs=page.get("revisions") or []
+            title=by_n[n]["title"]; page=by_id.get(by_n[n]["pageid"],{}); revs=page.get("revisions") or []
             if not revs: payload={"title":title,"pageid":page.get("pageid"),"khanda":k,"chapter":n,"error":"no_revision"}
             else:
                 rev=revs[0]; content=rev.get("slots",{}).get("main",{}).get("content",""); payload={"title":title,"pageid":page.get("pageid"),"khanda":k,"chapter":n,"revision_id":rev.get("revid"),"parent_id":rev.get("parentid"),"revision_timestamp":rev.get("timestamp"),"revision_sha1":rev.get("sha1"),"revision_size":rev.get("size"),"retrieved_at":datetime.now(timezone.utc).isoformat(),"source_url":"https://sa.wikisource.org/wiki/"+title.replace(" ","_"),"wikitext":content}
