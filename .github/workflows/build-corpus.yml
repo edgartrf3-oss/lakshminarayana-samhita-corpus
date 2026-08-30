@@ -1,0 +1,58 @@
+name: Build LNS corpus snapshot
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-corpus.yml"
+      - "lns_corpus/**"
+      - "scripts/**"
+      - "config/**"
+      - "requirements.txt"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: lns-corpus-snapshot
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Download revision-pinned Wikisource snapshot
+        env:
+          LNS_USER_AGENT: "LakshminarayanaSamhitaCorpusBot/0.3 (${{ github.server_url }}/${{ github.repository }}; research corpus)"
+        run: python scripts/download.py --user-agent "$LNS_USER_AGENT" --delay 0.5
+      - name: Build normalized and transliterated corpus
+        run: python scripts/build.py
+      - name: Validate corpus
+        run: python scripts/validate.py
+      - name: Create consolidated files
+        run: python scripts/consolidate.py
+      - name: Record provenance
+        run: |
+          mkdir -p metadata
+          printf 'repository=%s\ncommit=%s\nrun_id=%s\ngenerated_at=%s\n' "$GITHUB_REPOSITORY" "$GITHUB_SHA" "$GITHUB_RUN_ID" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > metadata/github-actions-run.txt
+      - name: Upload immutable source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: lns-wikisource-snapshot-${{ github.sha }}
+          path: source/wikisource/
+          retention-days: 90
+      - name: Upload searchable corpus
+        uses: actions/upload-artifact@v4
+        with:
+          name: lns-searchable-corpus-${{ github.sha }}
+          path: |
+            corpus/
+            consolidated/
+            metadata/
+            reports/
+          retention-days: 90
